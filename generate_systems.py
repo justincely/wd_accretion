@@ -9,9 +9,12 @@ solar system distributions.
 Fully sampling the libration width will allow later analysis to simply convolve
 different asteroid distributions with this data.
 
+Run for 250Myr
+
 """
 
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 plt.ioff()
 
@@ -28,6 +31,10 @@ I_JUP = 1.30530
 G_JUP = 14.75385
 N_JUP = 100.55615
 M_JUP = 0
+
+#---
+N_SMALL = 10000
+E_MAX = .6
 
 #-------------------------------------------------------------------------------
 
@@ -95,11 +102,10 @@ def libration_width(e, a, m_sun, m_planet):
 
     #-- for 2:1 resonance
     j2 = -1
-    alpha_f = -.749964
-    jacobi = (m_sun / m_planet) * (alpha_f)
+    jacobi = abs((m_planet / m_sun) * (-.749964))
 
     max_l = ((16.0 / 3.0) * jacobi * e) ** (1/2.)
-    max_l *= (1 + (jacobi/(27.0 * j2*(e**3))) )**(1/2.)
+    max_l *= (1 + (jacobi/(27.0 * j2**2 *(e**3))) )**(1/2.)
     max_l -= (2/(9 * j2 * e)) * jacobi * a
 
     return max_l
@@ -147,3 +153,33 @@ if __name__ == "__main__":
             write_input_file(big_outname, body, coords, 'big')
 
             #-- Small bodies
+
+            a_res = ((1/2.)**2 * (A_JUP * a_factor)**3) ** (1/3.)
+            all_e = np.random.random_sample(N_SMALL) * E_MAX
+            #-- Msun is MS mass
+            lib_width = libration_width(E_MAX, a_res, 1, JUPITER_MASS * mass_factor)
+            print a_res, lib_width
+
+            max_a = a_res + 2 * lib_width
+            min_a = a_res - 2 * lib_width
+            all_a = np.array([random.uniform(min_a, max_a) for i in xrange(N_SMALL)])
+
+
+
+            #-- Plot the distribution
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+            ax.plot(all_a, all_e, '.', alpha=.6, color='black')
+            ax.axvline(x=a_res, color='r', ls='-', lw=4, label="Resonance")
+            ax.axvline(x=a_res - lib_width, color='r', ls='--', lw=4, label="Lib width at e=.6")
+            ax.axvline(x=a_res + lib_width, color='r', ls='--', lw=4)
+            ax.set_ylim(0, .6)
+            ax.set_xlim(all_a.min(), all_a.max())
+
+            ax.set_xlabel('a (AU)')
+            ax.set_ylabel('e')
+            ax.set_title('Asteroid Distribution around resonance')
+            fig.savefig('small_dist_{}_{}.pdf'.format(a_factor,
+                                                      str(mass_factor).replace('.', '-')))
+            plt.close(fig)
+            #--
