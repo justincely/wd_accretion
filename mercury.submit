@@ -1,0 +1,19 @@
+################
+# Submit the simulations with condor
+################
+
+Executable  = call_mercury
+Universe    = vanilla
+priority    = 10
+getenv      = true
+
+transfer_executable = true
+#should_transfer_files = IF_NEEDED
+#environment = PATH=/usr/local/bin:/sw/bin:/usr/bin:$PATH
+
+error      = /user/ely/mercury/justin/data/simul_1.0_0.1_$(Process)/condor.err
+output     = /user/ely/mercury/justin/data/simul_1.0_0.1_$(Process)/condor.out
+log        = /user/ely/mercury/justin/data/simul_1.0_0.1_$(Process)/condor.log
+arguments  = /user/ely/mercury/justin/data/simul_1.0_0.1_$(Process)
+
+queue 20

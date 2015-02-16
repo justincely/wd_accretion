@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import smtplib
+import subprocess
+import time
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+class Logger(object):
+    def __init__(self,filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "w")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+
+folder = sys.argv[1]
+os.chdir(folder)
+
+sys.stdout = Logger('condor.stdout')
+sys.stderr = Logger('condor.stderr')
+
+print os.getcwd()
+
+if sys.platform.startswith('linux'):
+    p = subprocess.Popen(['make'])
+elif sys.platform == 'darwin':
+    p = subprocess.Popen(['make', 'osx'])
+else:
+    sys.exit('FAILURE to compile!')
+
+p.communicate()
+p.wait()
+
+
+p = subprocess.Popen(['./mercury6'])
+p.communicate()
+p.wait()
+
+#if os.path.exists('out_encounters.txt'):
+#    os.remove('out_encounters.txt')
+
+msg = MIMEMultipart()
+msg['Subject'] = 'Mercury status'
+msg['From'] = 'ely@stsci.edu'
+msg['To'] = 'ely@stsci.edu'
+msg.attach(MIMEText('Integration done for {}'.format(folder)))
+
+s = smtplib.SMTP('smtp.stsci.edu')
+s.sendmail('ely@stsci.edu', 'ely@stsci.edu', msg.as_string())
+
+s.quit()
