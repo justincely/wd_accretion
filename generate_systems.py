@@ -133,17 +133,49 @@ def rel_period(a1, a2):
 
 #-------------------------------------------------------------------------------
 
+def make_condor_submit(root, n_simul):
+    """Write out the condor submit file"""
+
+    with open(os.path.split(root)[-1]+'mercury.submit', 'w') as outtxt:
+        outtxt.write('################\n')
+        outtxt.write('# Submit the simulations with condor\n')
+        outtxt.write('################\n')
+        outtxt.write('\n')
+        outtxt.write('Executable  = call_mercury\n')
+        outtxt.write('Universe    = vanilla\n')
+        outtxt.write('priority    = 10\n')
+        outtxt.write('getenv      = true\n')
+        outtxt.write('\n')
+        outtxt.write('notification = Complete\n')
+        outtxt.write('notify_user  = ely@stsci.edu \n')
+        outtxt.write('RUN_PREFIX   = {}\n'.format(root))
+        outtxt.write('\n')
+        outtxt.write('transfer_executable = true\n')
+        outtxt.write('\n')
+        outtxt.write('error      = $(RUN_PREFIX)$(Process)/condor.err\n')
+        outtxt.write('output     = $(RUN_PREFIX)$(Process)/condor.out\n')
+        outtxt.write('log        = $(RUN_PREFIX)$(Process)/condor.log\n')
+        outtxt.write('arguments  = $(RUN_PREFIX)$(Process)\n')
+        outtxt.write('\n')
+        outtxt.write('queue {}\n'.format(n_simul))        
+
+#-------------------------------------------------------------------------------
+
 if __name__ == "__main__":
     for a_factor in np.arange(1, 8, .5):
         print a_factor
         masses_sample = [.1, .5, 1, 2, 4, 6, 8, 10]
         for mass_factor in masses_sample:
             print mass_factor
+    
+            rootname = 'data/simul_{}_{}_'.format(a_factor, mass_factor)
+            make_condor_submit(rootname, N_SIMUL)
+
             for N in xrange(N_SIMUL):
                 #-- Big body
                 N = str(N)
 
-                simul_name = 'data/simul_{}_{}_{}'.format(a_factor, mass_factor, N)
+                simul_name = rootname + N
 
                 if not os.path.exists(simul_name):
                     os.makedirs(simul_name)
