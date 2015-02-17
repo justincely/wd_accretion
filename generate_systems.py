@@ -180,7 +180,7 @@ if __name__ == "__main__":
                 if not os.path.exists(simul_name):
                     os.makedirs(simul_name)
 
-                big_outname = 'big_{}_{}.in'.format(a_factor, str(mass_factor).replace('.', '-'))
+                big_outname = 'big_{}_{}.in'.format(a_factor, mass_factor)
                 print "Generating big file: {}".format(big_outname)
 
                 body = 'JUPITER r={:1.5E} d={:1.5E} m={:1.15E} '.format(J_HILL_RADIUS,
@@ -224,7 +224,7 @@ if __name__ == "__main__":
                     bodies.append("{}   ep=0".format(num))
                     coords.append("    {}    {}    {}    {}    {}    {}    0  0  0".format(a, e, i, g, h, m))
 
-                small_outname = 'small_{}_{}.in'.format(a_factor, str(mass_factor).replace('.', '-'))
+                small_outname = 'small_{}_{}.in'.format(a_factor, mass_factor)
                 write_input_file(small_outname, bodies, coords, 'small')
 
                 #-- Plot the distribution
@@ -246,10 +246,10 @@ if __name__ == "__main__":
                 ax.set_xlabel('Semi-major Axis: a (AU)')
                 ax.set_ylabel('Eccentricity: e')
                 ax.set_title('Asteroid Distribution: a={}, m={}'.format(a_factor,
-                                                          str(mass_factor).replace('.', '-')))
+                                                                        mass_factor))
                 ax.legend(shadow=True, numpoints=1, loc='upper right')
                 fig.savefig('small_dist_{}_{}.pdf'.format(a_factor,
-                                                          str(mass_factor).replace('.', '-')), bbox_inches='tight')
+                                                          mass_factor), bbox_inches='tight')
                 plt.close(fig)
                 #-----------------------
 

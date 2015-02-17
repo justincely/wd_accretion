@@ -26,6 +26,6 @@ p = subprocess.Popen(['./mercury6'])
 p.communicate()
 p.wait()
 
-#if os.path.exists('out_encounters.txt'):
-#    os.remove('out_encounters.txt')
+if os.path.exists('out_encounters.txt'):
+    os.remove('out_encounters.txt')
 
