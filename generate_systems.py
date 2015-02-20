@@ -42,7 +42,7 @@ M_JUP = 0
 
 #---
 N_SMALL = 100
-E_MAX = .6
+E_MAX = .4
 
 N_SIMUL = 200
 
@@ -157,22 +157,24 @@ def make_condor_submit(root, n_simul):
         outtxt.write('log        = $(RUN_PREFIX)$(Process)/condor.log\n')
         outtxt.write('arguments  = $(RUN_PREFIX)$(Process)\n')
         outtxt.write('\n')
-        outtxt.write('queue {}\n'.format(n_simul))        
+        outtxt.write('queue {}\n'.format(n_simul))
 
 #-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     for a_factor in np.arange(1, 8, .5):
         print a_factor
-        masses_sample = [.1, .5, 1, 2, 4, 6, 8, 10]
+        masses_sample = [.01, .1, .5, 1, 2, 10]
         for mass_factor in masses_sample:
             print mass_factor
-    
+
             rootname = 'data/simul_{}_{}_'.format(a_factor, mass_factor)
             make_condor_submit(rootname, N_SIMUL)
 
             for N in xrange(N_SIMUL):
+                ##############
                 #-- Big body
+                #############
                 N = str(N)
 
                 simul_name = rootname + N
@@ -195,19 +197,20 @@ if __name__ == "__main__":
                                                                                                    M_JUP)
                 write_input_file(big_outname, body, coords, 'big')
 
+                ################
                 #-- Small bodies
-
+                ################
                 a_res = ((1/2.)**2 * (A_JUP * a_factor)**3) ** (1/3.)
                 all_e = np.random.random_sample(N_SMALL) * E_MAX
                 #-- Msun is MS mass
                 lib_width = libration_width(E_MAX, a_res, .54, JUPITER_MASS * mass_factor)
 
-                max_a = a_res + (2 * lib_width)
-                min_a = a_res - (2 * lib_width)
+                max_a = a_res + (1.2 * lib_width)
+                min_a = a_res - (1.2 * lib_width)
                 print a_res, lib_width, min_a, max_a
-                all_a = np.array([random.uniform(min_a, max_a) for i in xrange(N_SMALL)])
 
-                all_i = np.array([random.uniform(-30, 30) for i in xrange(N_SMALL)])
+                all_a = np.array([random.uniform(min_a, max_a) for i in xrange(N_SMALL)])
+                all_i = np.array([random.uniform(-20, 20) for i in xrange(N_SMALL)])
                 all_g = np.array([random.uniform(0, 360) for i in xrange(N_SMALL)])
                 all_n = np.array([random.uniform(0, 360) for i in xrange(N_SMALL)])
                 all_m = np.array([random.uniform(0, 360) for i in xrange(N_SMALL)])
@@ -226,6 +229,8 @@ if __name__ == "__main__":
 
                 small_outname = 'small_{}_{}.in'.format(a_factor, mass_factor)
                 write_input_file(small_outname, bodies, coords, 'small')
+
+
 
                 #-- Plot the distribution
                 fig = plt.figure()
@@ -254,6 +259,8 @@ if __name__ == "__main__":
                 #-----------------------
 
 
+
+                #-- Create/copy needed input files to run directory
                 with open('files.in', 'w') as out_txt:
                     out_txt.write(' {}\n'.format(big_outname))
                     out_txt.write(' {}\n'.format(small_outname))
@@ -265,7 +272,6 @@ if __name__ == "__main__":
                     out_txt.write(' dump_small.txt\n')
                     out_txt.write(' dump_parameters.txt\n')
                     out_txt.write(' dump_restart.txt\n')
-
 
                 needed_files = ['mercury_code/Makefile',
                                 'mercury_code/mercury6_3.for',
@@ -285,6 +291,7 @@ if __name__ == "__main__":
                 for filename in needed_files:
                     shutil.copy(filename, simul_name)
 
+                #-- Clear directory for next iteration
                 os.remove(small_outname)
                 os.remove(big_outname)
                 os.remove('files.in')
