@@ -1,9 +1,9 @@
 alll: compile run convert close
 
 compile:
-	g77 -o mercury6 mercury6_3.for
-	g77 -o element6 element6.for
-	g77 -o close6 close6.for
+	/usr/bin/g77 -o mercury6 mercury6_3.for
+	/usr/bin/g77 -o element6 element6.for
+	/usr/bin/g77 -o close6 close6.for
 
 osx:
 	/sw/bin/gfortran -o mercury6 mercury6_3.for

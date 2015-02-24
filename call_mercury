@@ -11,16 +11,30 @@ from email.mime.multipart import MIMEMultipart
 folder = sys.argv[1]
 os.chdir(folder)
 
+class Logger(object):
+    def __init__(self,filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "w")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+
+sys.stdout = Logger('condor.stdout')
+sys.stderr = Logger('condor.stderr')
+
 if sys.platform.startswith('linux'):
-    p = subprocess.Popen(['make'])
+    p = subprocess.Popen(['make'], shell=True)
 elif sys.platform == 'darwin':
-    p = subprocess.Popen(['make', 'osx'])
+    p = subprocess.Popen(['make', 'osx'], shell=True)
 else:
     sys.exit('FAILURE to compile!')
 
 p.communicate()
 p.wait()
-
 
 p = subprocess.Popen(['./mercury6'])
 p.communicate()

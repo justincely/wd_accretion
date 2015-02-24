@@ -41,10 +41,10 @@ N_JUP = 100.55615
 M_JUP = 0
 
 #---
-N_SMALL = 100
+N_SMALL = 400
 E_MAX = .4
 
-N_SIMUL = 200
+N_SIMUL = 50
 
 #-------------------------------------------------------------------------------
 
@@ -151,6 +151,7 @@ def make_condor_submit(root, n_simul):
         outtxt.write('RUN_PREFIX   = {}\n'.format(root))
         outtxt.write('\n')
         outtxt.write('transfer_executable = true\n')
+        outtxt.write('should_transfer_files = YES\n')
         outtxt.write('\n')
         outtxt.write('error      = $(RUN_PREFIX)$(Process)/condor.err\n')
         outtxt.write('output     = $(RUN_PREFIX)$(Process)/condor.out\n')
@@ -163,12 +164,11 @@ def make_condor_submit(root, n_simul):
 
 if __name__ == "__main__":
     for a_factor in np.arange(1, 8, .5):
-        print a_factor
         masses_sample = [.01, .1, .5, 1, 2, 10]
         for mass_factor in masses_sample:
-            print mass_factor
+            print a_factor, mass_factor
 
-            rootname = 'data/simul_{}_{}_'.format(a_factor, mass_factor)
+            rootname = '/user/ely/mercury/justin/data/simul_{}_{}_'.format(a_factor, mass_factor)
             make_condor_submit(rootname, N_SIMUL)
 
             for N in xrange(N_SIMUL):
@@ -207,7 +207,6 @@ if __name__ == "__main__":
 
                 max_a = a_res + (1.2 * lib_width)
                 min_a = a_res - (1.2 * lib_width)
-                print a_res, lib_width, min_a, max_a
 
                 all_a = np.array([random.uniform(min_a, max_a) for i in xrange(N_SMALL)])
                 all_i = np.array([random.uniform(-20, 20) for i in xrange(N_SMALL)])
