@@ -29,7 +29,7 @@ sys.stderr = Logger('condor.stderr')
 if sys.platform.startswith('linux'):
     p = subprocess.Popen(['make'], shell=True)
 elif sys.platform == 'darwin':
-    p = subprocess.Popen(['make', 'osx'], shell=True)
+    p = subprocess.Popen(['make', 'osx'])
 else:
     sys.exit('FAILURE to compile!')
 
