@@ -25,6 +25,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
+from astropy.utils.console import ProgressBar
 
 #-- solar masses
 JUPITER_MASS = 9.54791938424326609E-04
@@ -171,7 +172,7 @@ if __name__ == "__main__":
             rootname = '/user/ely/mercury/justin/data/simul_{}_{}_'.format(a_factor, mass_factor)
             make_condor_submit(rootname, N_SIMUL)
 
-            for N in xrange(N_SIMUL):
+            for N in ProgressBar(xrange(N_SIMUL)):
                 ##############
                 #-- Big body
                 #############
@@ -183,7 +184,6 @@ if __name__ == "__main__":
                     os.makedirs(simul_name)
 
                 big_outname = 'big_{}_{}.in'.format(a_factor, mass_factor)
-                print "Generating big file: {}".format(big_outname)
 
                 body = 'JUPITER r={:1.5E} d={:1.5E} m={:1.15E} '.format(J_HILL_RADIUS,
                                                                         J_DENSITY,
