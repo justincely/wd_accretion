@@ -285,7 +285,9 @@ if __name__ == "__main__":
                                 'mercury_code/swift.inc',
                                 'files.in',
    				                small_outname,
-           			            big_outname]
+           			            big_outname,
+                                'mercury_code/mercury6_g77',
+                                'mercury_code/mercury6_gfortran']
 
                 for filename in needed_files:
                     shutil.copy(filename, simul_name)

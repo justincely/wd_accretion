@@ -7,6 +7,9 @@ import subprocess
 import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import time
+
+#time.sleep(10)
 
 folder = sys.argv[1]
 os.chdir(folder)
@@ -25,18 +28,28 @@ class Logger(object):
 
 sys.stdout = Logger('condor.stdout')
 sys.stderr = Logger('condor.stderr')
-
+'''
 if sys.platform.startswith('linux'):
-    p = subprocess.Popen(['make'], shell=True)
+    if os.path.exists('/usr/bin/g77'):
+        p = subprocess.Popen(['make', 'compile_g77'], shell=True)
+    elif os.path.exists('/usr/bin/gfortran'):
+        p = subprocess.Popen(['make', 'compile_gfortran'], shell=True)
+    else:
+        sys.exit('No fortran')
 elif sys.platform == 'darwin':
-    p = subprocess.Popen(['make', 'osx'])
+    p = subprocess.Popen(['make', 'compile_osx'])
 else:
     sys.exit('FAILURE to compile!')
-
 p.communicate()
 p.wait()
+'''
+if os.path.exists('/usr/bin/g77'):
+    p = subprocess.Popen(['./mercury6_g77'])
+elif os.path.exists('/usr/bin/gfortran'):
+    p = subprocess.Popen(['./mercury6_gfortran'])
+else:
+    sys.exit('No fortran')
 
-p = subprocess.Popen(['./mercury6'])
 p.communicate()
 p.wait()
 
