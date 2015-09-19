@@ -142,7 +142,7 @@ def make_condor_submit(root, n_simul):
         outtxt.write('# Submit the simulations with condor\n')
         outtxt.write('################\n')
         outtxt.write('\n')
-        outtxt.write('Executable  = call_mercury\n')
+        outtxt.write('Executable  = call_mercury.sh\n')
         outtxt.write('Universe    = vanilla\n')
         outtxt.write('priority    = 10\n')
         outtxt.write('getenv      = true\n')
@@ -285,9 +285,7 @@ if __name__ == "__main__":
                                 'mercury_code/swift.inc',
                                 'files.in',
    				                small_outname,
-           			            big_outname,
-                                'mercury_code/mercury6_g77',
-                                'mercury_code/mercury6_gfortran']
+           			            big_outname]
 
                 for filename in needed_files:
                     shutil.copy(filename, simul_name)
