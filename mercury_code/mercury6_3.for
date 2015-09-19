@@ -1664,9 +1664,8 @@ c is in progress, store details
               if (nclo.gt.CMAX) then
  230            open (23,file=outfile,status='old',access='append',
      %            err=230)
-c
-c               write (23,'(/,2a,/,a)') mem(121)(1:lmem(121)),
-c    %            mem(132)(1:lmem(132)),mem(82)(1:lmem(82))
+                write (23,'(/,2a,/,a)') mem(121)(1:lmem(121)),
+     %            mem(132)(1:lmem(132)),mem(82)(1:lmem(82))
                 close (23)
               else
                 tclo(nclo) = tmin + time
