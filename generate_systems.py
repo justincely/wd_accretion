@@ -26,6 +26,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 from astropy.utils.console import ProgressBar
+import datetime
 
 #-- solar masses
 JUPITER_MASS = 9.54791938424326609E-04
@@ -42,10 +43,10 @@ N_JUP = 100.55615
 M_JUP = 0
 
 #---
-N_SMALL = 400
+N_SMALL = 100
 E_MAX = .4
 
-N_SIMUL = 50
+N_SIMUL = 10
 
 #-------------------------------------------------------------------------------
 
@@ -142,9 +143,9 @@ def make_condor_submit(root, n_simul):
         outtxt.write('# Submit the simulations with condor\n')
         outtxt.write('################\n')
         outtxt.write('\n')
-        outtxt.write('Executable  = call_mercury.sh\n')
+        outtxt.write('Executable  = call_mercury\n')
         outtxt.write('Universe    = vanilla\n')
-        outtxt.write('priority    = 10\n')
+        outtxt.write('priority    = -20\n')
         outtxt.write('getenv      = true\n')
         outtxt.write('\n')
         outtxt.write('notification = Complete\n')
@@ -164,15 +165,17 @@ def make_condor_submit(root, n_simul):
 #-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    GEN_DATE = str(datetime.datetime.now()).replace(' ', '_').replace(':', '-')
+
     for a_factor in np.arange(1, 8, .5):
         masses_sample = [.01, .1, .5, 1, 2, 10]
         for mass_factor in masses_sample:
-            print a_factor, mass_factor
+            print(a_factor, mass_factor)
 
-            rootname = '/user/ely/mercury/justin/data/simul_{}_{}_'.format(a_factor, mass_factor)
+            rootname = os.path.join(os.path.abspath(os.getcwd()), 'data/simul_{}_{}_{}_'.format(GEN_DATE, a_factor, mass_factor))
             make_condor_submit(rootname, N_SIMUL)
 
-            for N in ProgressBar(xrange(N_SIMUL)):
+            for N in ProgressBar(range(N_SIMUL)):
                 ##############
                 #-- Big body
                 #############
@@ -208,15 +211,15 @@ if __name__ == "__main__":
                 max_a = a_res + (1.2 * lib_width)
                 min_a = a_res - (1.2 * lib_width)
 
-                all_a = np.array([random.uniform(min_a, max_a) for i in xrange(N_SMALL)])
-                all_i = np.array([random.uniform(-20, 20) for i in xrange(N_SMALL)])
-                all_g = np.array([random.uniform(0, 360) for i in xrange(N_SMALL)])
-                all_n = np.array([random.uniform(0, 360) for i in xrange(N_SMALL)])
-                all_m = np.array([random.uniform(0, 360) for i in xrange(N_SMALL)])
+                all_a = np.array([random.uniform(min_a, max_a) for i in range(N_SMALL)])
+                all_i = np.array([random.uniform(-20, 20) for i in range(N_SMALL)])
+                all_g = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
+                all_n = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
+                all_m = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
 
                 bodies = []
                 coords = []
-                for num, a, e, i, g, h, m in zip(xrange(N_SMALL),
+                for num, a, e, i, g, h, m in zip(range(N_SMALL),
                                                 all_a,
                                                 all_e,
                                                 all_i,
