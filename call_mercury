@@ -1,58 +1,25 @@
-#!/usr/bin/env python
+#!/bin/bash
 
-import os
-import sys
-import smtplib
-import subprocess
-import time
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import time
+echo $1
 
-#time.sleep(10)
+cd $1
 
-folder = sys.argv[1]
-os.chdir(folder)
+if command -v gfortran
+then
+    gfortran -o mercury6 mercury6_3.for
+    gfortran -o element6 element6.for
+    gfortran -o close6 close6.for 
 
-class Logger(object):
-    def __init__(self,filename):
-        self.terminal = sys.stdout
-        self.log = open(filename, "w")
+elif command -v g77
+then
+    g77 -o mercury6 mercury6_3.for
+    g77 -o element6 element6.for
+    g77 -o close6 close6.for   
+else
+    echo "Mercury6 needs some form of fortran compiler to run"
+    exit 1
+fi
 
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message)
+./mercury6 >> condor.stdout
 
-    def flush(self):
-        self.terminal.flush()
-
-sys.stdout = Logger('condor.stdout')
-sys.stderr = Logger('condor.stderr')
-'''
-if sys.platform.startswith('linux'):
-    if os.path.exists('/usr/bin/g77'):
-        p = subprocess.Popen(['make', 'compile_g77'], shell=True)
-    elif os.path.exists('/usr/bin/gfortran'):
-        p = subprocess.Popen(['make', 'compile_gfortran'], shell=True)
-    else:
-        sys.exit('No fortran')
-elif sys.platform == 'darwin':
-    p = subprocess.Popen(['make', 'compile_osx'])
-else:
-    sys.exit('FAILURE to compile!')
-p.communicate()
-p.wait()
-'''
-if os.path.exists('/usr/bin/g77'):
-    p = subprocess.Popen(['./mercury6_g77'])
-elif os.path.exists('/usr/bin/gfortran'):
-    p = subprocess.Popen(['./mercury6_gfortran'])
-else:
-    sys.exit('No fortran')
-
-p.communicate()
-p.wait()
-
-if os.path.exists('out_encounters.txt'):
-    os.remove('out_encounters.txt')
-
+rm out_encounters.txt
