@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 plt.ioff()
 from astropy.utils.console import ProgressBar
 import datetime
+import sys
 
 #-- solar masses
 JUPITER_MASS = 9.54791938424326609E-04
@@ -167,134 +168,120 @@ def make_condor_submit(root, n_simul):
 if __name__ == "__main__":
     GEN_DATE = str(datetime.datetime.now()).replace(' ', '_').replace(':', '-')
 
-    for a_factor in np.arange(1, 8, .5):
-        masses_sample = [.01, .1, .5, 1, 2, 10]
-        for mass_factor in masses_sample:
-            print(a_factor, mass_factor)
+    a_factor = float(sys.argv[1])
+    mass_factor = float(sys.argv[2])
 
-            rootname = os.path.join(os.path.abspath(os.getcwd()), 'data/simul_{}_{}_{}_'.format(GEN_DATE, a_factor, mass_factor))
-            make_condor_submit(rootname, N_SIMUL)
+    rootname = 'simul_{}_{}_{}_'.format(GEN_DATE, a_factor, mass_factor)
 
-            for N in ProgressBar(range(N_SIMUL)):
-                ##############
-                #-- Big body
-                #############
-                N = str(N)
+    big_outname = 'big_{}_{}.in'.format(a_factor, mass_factor)
 
-                simul_name = rootname + N
+    body = 'JUPITER r={:1.5E} d={:1.5E} m={:1.15E} '.format(J_HILL_RADIUS,
+                                                            J_DENSITY,
+                                                            JUPITER_MASS * mass_factor)
+    #-- a, e, i, g, n, m
+    coords = '    {:1.15E} {:1.15E} {:1.15E} {:1.15E} {:1.15E} {:1.15E} 0 0 0 '.format(A_JUP * a_factor,
+                                                                                       E_JUP,
+                                                                                       I_JUP,
+                                                                                       G_JUP,
+                                                                                       N_JUP,
+                                                                                       M_JUP)
+    write_input_file(big_outname, body, coords, 'big')
 
-                if not os.path.exists(simul_name):
-                    os.makedirs(simul_name)
+    ################
+    #-- Small bodies
+    ################
+    a_res = ((1/2.)**2 * (A_JUP * a_factor)**3) ** (1/3.)
+    all_e = np.random.random_sample(N_SMALL) * E_MAX
+    #-- Msun is MS mass
+    lib_width = libration_width(E_MAX, a_res, .54, JUPITER_MASS * mass_factor)
 
-                big_outname = 'big_{}_{}.in'.format(a_factor, mass_factor)
+    max_a = a_res + (1.2 * lib_width)
+    min_a = a_res - (1.2 * lib_width)
 
-                body = 'JUPITER r={:1.5E} d={:1.5E} m={:1.15E} '.format(J_HILL_RADIUS,
-                                                                        J_DENSITY,
-                                                                        JUPITER_MASS * mass_factor)
-                #-- a, e, i, g, n, m
-                coords = '    {:1.15E} {:1.15E} {:1.15E} {:1.15E} {:1.15E} {:1.15E} 0 0 0 '.format(A_JUP * a_factor,
-                                                                                                   E_JUP,
-                                                                                                   I_JUP,
-                                                                                                   G_JUP,
-                                                                                                   N_JUP,
-                                                                                                   M_JUP)
-                write_input_file(big_outname, body, coords, 'big')
+    all_a = np.array([random.uniform(min_a, max_a) for i in range(N_SMALL)])
+    all_i = np.array([random.uniform(-20, 20) for i in range(N_SMALL)])
+    all_g = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
+    all_n = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
+    all_m = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
 
-                ################
-                #-- Small bodies
-                ################
-                a_res = ((1/2.)**2 * (A_JUP * a_factor)**3) ** (1/3.)
-                all_e = np.random.random_sample(N_SMALL) * E_MAX
-                #-- Msun is MS mass
-                lib_width = libration_width(E_MAX, a_res, .54, JUPITER_MASS * mass_factor)
+    bodies = []
+    coords = []
+    for num, a, e, i, g, h, m in zip(range(N_SMALL),
+                                    all_a,
+                                    all_e,
+                                    all_i,
+                                    all_g,
+                                    all_n,
+                                    all_m):
+        bodies.append("{}   ep=0".format(num))
+        coords.append("    {}    {}    {}    {}    {}    {}    0  0  0".format(a, e, i, g, h, m))
 
-                max_a = a_res + (1.2 * lib_width)
-                min_a = a_res - (1.2 * lib_width)
-
-                all_a = np.array([random.uniform(min_a, max_a) for i in range(N_SMALL)])
-                all_i = np.array([random.uniform(-20, 20) for i in range(N_SMALL)])
-                all_g = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
-                all_n = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
-                all_m = np.array([random.uniform(0, 360) for i in range(N_SMALL)])
-
-                bodies = []
-                coords = []
-                for num, a, e, i, g, h, m in zip(range(N_SMALL),
-                                                all_a,
-                                                all_e,
-                                                all_i,
-                                                all_g,
-                                                all_n,
-                                                all_m):
-                    bodies.append("{}   ep=0".format(num))
-                    coords.append("    {}    {}    {}    {}    {}    {}    0  0  0".format(a, e, i, g, h, m))
-
-                small_outname = 'small_{}_{}.in'.format(a_factor, mass_factor)
-                write_input_file(small_outname, bodies, coords, 'small')
+    small_outname = 'small_{}_{}.in'.format(a_factor, mass_factor)
+    write_input_file(small_outname, bodies, coords, 'small')
 
 
 
-                #-- Plot the distribution
-                fig = plt.figure()
-                ax = fig.add_subplot(1, 1, 1)
-                ax.plot(all_a, all_e, '.', alpha=.6, color='black')
-                ax.axvline(x=a_res, color='r', ls='-', lw=4, label="Resonance")
+    #-- Plot the distribution
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(all_a, all_e, '.', alpha=.6, color='black')
+    ax.axvline(x=a_res, color='r', ls='-', lw=4, label="Resonance")
 
-                lib_e = np.linspace(0, 1, 200)
-                lib_a = np.linspace(all_a.min(), all_a.max(), 200)
-                ax.plot(a_res - libration_width(lib_e, lib_a, .54, JUPITER_MASS * mass_factor), lib_e, color='b', ls='-', lw=4, label='Libration_width')
-                ax.plot(a_res + libration_width(lib_e, lib_a, .54, JUPITER_MASS * mass_factor), lib_e,  color='b', ls='-', lw=4)
+    lib_e = np.linspace(0, 1, 200)
+    lib_a = np.linspace(all_a.min(), all_a.max(), 200)
+    ax.plot(a_res - libration_width(lib_e, lib_a, .54, JUPITER_MASS * mass_factor), lib_e, color='b', ls='-', lw=4, label='Libration_width')
+    ax.plot(a_res + libration_width(lib_e, lib_a, .54, JUPITER_MASS * mass_factor), lib_e,  color='b', ls='-', lw=4)
 
-                #ax.axvline(x=a_res - lib_width, color='r', ls='--', lw=4, label="Lib width at e=.6")
-                #ax.axvline(x=a_res + lib_width, color='r', ls='--', lw=4)
-                ax.set_ylim(0, .6)
-                ax.set_xlim(all_a.min(), all_a.max())
+    #ax.axvline(x=a_res - lib_width, color='r', ls='--', lw=4, label="Lib width at e=.6")
+    #ax.axvline(x=a_res + lib_width, color='r', ls='--', lw=4)
+    ax.set_ylim(0, .6)
+    ax.set_xlim(all_a.min(), all_a.max())
 
-                ax.set_xlabel('Semi-major Axis: a (AU)')
-                ax.set_ylabel('Eccentricity: e')
-                ax.set_title('Asteroid Distribution: a={}, m={}'.format(a_factor,
-                                                                        mass_factor))
-                ax.legend(shadow=True, numpoints=1, loc='upper right')
-                fig.savefig('small_dist_{}_{}.pdf'.format(a_factor,
-                                                          mass_factor), bbox_inches='tight')
-                plt.close(fig)
-                #-----------------------
+    ax.set_xlabel('Semi-major Axis: a (AU)')
+    ax.set_ylabel('Eccentricity: e')
+    ax.set_title('Asteroid Distribution: a={}, m={}'.format(a_factor,
+                                                            mass_factor))
+    ax.legend(shadow=True, numpoints=1, loc='upper right')
+    fig.savefig('small_dist_{}_{}.pdf'.format(a_factor,
+                                              mass_factor), bbox_inches='tight')
+    plt.close(fig)
+    #-----------------------
 
 
 
-                #-- Create/copy needed input files to run directory
-                with open('files.in', 'w') as out_txt:
-                    out_txt.write(' {}\n'.format(big_outname))
-                    out_txt.write(' {}\n'.format(small_outname))
-                    out_txt.write(' in_parameters.txt\n')
-                    out_txt.write(' out_positions.txt\n')
-                    out_txt.write(' out_encounters.txt\n')
-                    out_txt.write(' out_parameters.txt\n')
-                    out_txt.write(' dump_big.txt\n')
-                    out_txt.write(' dump_small.txt\n')
-                    out_txt.write(' dump_parameters.txt\n')
-                    out_txt.write(' dump_restart.txt\n')
+    #-- Create/copy needed input files to run directory
+    with open('files.in', 'w') as out_txt:
+        out_txt.write(' {}\n'.format(big_outname))
+        out_txt.write(' {}\n'.format(small_outname))
+        out_txt.write(' in_parameters.txt\n')
+        out_txt.write(' out_positions.txt\n')
+        out_txt.write(' out_encounters.txt\n')
+        out_txt.write(' out_parameters.txt\n')
+        out_txt.write(' dump_big.txt\n')
+        out_txt.write(' dump_small.txt\n')
+        out_txt.write(' dump_parameters.txt\n')
+        out_txt.write(' dump_restart.txt\n')
 
-                needed_files = ['mercury_code/Makefile',
-                                'mercury_code/mercury6_3.for',
-                                'mercury_code/mercury.inc',
-                                'mercury_code/close6.for',
-                                'mercury_code/close.in',
-                                'mercury_code/element6.for',
-                                'mercury_code/element.in',
-                                'mercury_code/in_parameters.txt',
-                                'mercury_code/element.in',
-                                'mercury_code/message.in',
-                                'mercury_code/swift.inc',
-                                'files.in',
-   				                small_outname,
-           			            big_outname]
+    needed_files = ['mercury_code/Makefile',
+                    'mercury_code/mercury6_3.for',
+                    'mercury_code/mercury.inc',
+                    'mercury_code/close6.for',
+                    'mercury_code/close.in',
+                    'mercury_code/element6.for',
+                    'mercury_code/element.in',
+                    'mercury_code/in_parameters.txt',
+                    'mercury_code/element.in',
+                    'mercury_code/message.in',
+                    'mercury_code/swift.inc',
+                    'files.in',
+		             small_outname,
+			         big_outname]
 
-                for filename in needed_files:
-                    shutil.copy(filename, simul_name)
+    for filename in needed_files:
+        shutil.copy(filename, './mercury_code')
 
-                #-- Clear directory for next iteration
-                os.remove(small_outname)
-                os.remove(big_outname)
-                os.remove('files.in')
-                os.system('rm -f small_dist*.pdf')
+    #-- Clear directory for next iteration
+    os.remove(small_outname)
+    os.remove(big_outname)
+    os.remove('files.in')
+    os.system('rm -f small_dist*.pdf')
