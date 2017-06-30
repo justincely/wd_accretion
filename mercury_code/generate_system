@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Create scenarios for running the MERCURY code
 
 Evenly sample the 2:1 resonance for the Sun - Jupiter system under different
@@ -171,7 +172,9 @@ if __name__ == "__main__":
     a_factor = float(sys.argv[1])
     mass_factor = float(sys.argv[2])
 
-    rootname = 'simul_{}_{}_{}_'.format(GEN_DATE, a_factor, mass_factor)
+    print(GEN_DATE)
+    print("Semi-major axis: {}".format(a_factor))
+    print("Jupiter mass: {}".format(mass_factor))
 
     big_outname = 'big_{}_{}.in'.format(a_factor, mass_factor)
 
@@ -262,26 +265,9 @@ if __name__ == "__main__":
         out_txt.write(' dump_parameters.txt\n')
         out_txt.write(' dump_restart.txt\n')
 
-    needed_files = ['mercury_code/Makefile',
-                    'mercury_code/mercury6_3.for',
-                    'mercury_code/mercury.inc',
-                    'mercury_code/close6.for',
-                    'mercury_code/close.in',
-                    'mercury_code/element6.for',
-                    'mercury_code/element.in',
-                    'mercury_code/in_parameters.txt',
-                    'mercury_code/element.in',
-                    'mercury_code/message.in',
-                    'mercury_code/swift.inc',
-                    'files.in',
-		             small_outname,
-			         big_outname]
-
-    for filename in needed_files:
-        shutil.copy(filename, './mercury_code')
-
     #-- Clear directory for next iteration
-    os.remove(small_outname)
-    os.remove(big_outname)
-    os.remove('files.in')
-    os.system('rm -f small_dist*.pdf')
+    #os.remove(small_outname)
+    #os.remove(big_outname)
+    #os.remove('files.in')
+    #os.system('rm -f small_dist*.pdf')
+    os.system('./mercury6')
